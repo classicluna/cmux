@@ -97,6 +97,12 @@ struct cmuxApp: App {
             simulatorStreamLaneProvider: { request, panelID in
                 guard let panelUUID = UUID(uuidString: panelID) else { throw MobileIrohSimulatorStreamLaneError.invalidPanelID }
                 return try await irx.openSimulatorStreamLane(for: request, panelID: panelUUID)
+            },
+            tunnelConnectProvider: { request, host, port in
+                try await irx.openTunnelConnection(for: request, host: host, port: port)
+            },
+            tunnelListeningPortsProvider: { request in
+                try await irx.tunnelListeningPorts(for: request)
             }
         )
 

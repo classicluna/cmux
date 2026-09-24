@@ -31,6 +31,7 @@ let package = Package(
         .package(path: "../CmuxMobileSupport"),
         .package(path: "../CmuxMobileTerminalKit"),
         .package(path: "../CmuxMobileTransport"),
+        .package(path: "../CmuxMobileTunnel"),
     ],
     targets: [
         .target(
@@ -48,6 +49,7 @@ let package = Package(
                 "CmuxMobileSupport",
                 "CmuxMobileTerminalKit",
                 "CmuxMobileTransport",
+                "CmuxMobileTunnel",
             ],
             swiftSettings: [
                 .swiftLanguageMode(.v6),
@@ -83,6 +85,7 @@ let package = Package(
                 "CmuxMobileRPC",
                 "CmuxMobileShellModel",
                 "CmuxMobileTransport",
+                "CmuxMobileTunnel",
             ],
             swiftSettings: [
                 .swiftLanguageMode(.v6),

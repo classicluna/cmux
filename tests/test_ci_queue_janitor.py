@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import datetime as dt
 import importlib.util
+import re
 import sys
 import tempfile
 import unittest
@@ -263,7 +264,11 @@ class DoomedCategoryTests(unittest.TestCase):
         # test above relies on, so reading a `failure` conclusion as decisive
         # would stop being sound.
         macos = (ROOT / ".github/workflows/ci-macos.yml").read_text(encoding="utf-8")
-        block = macos.split("\n  app-host-unit-tests:\n", 1)[1].split("\n  ", 1)[0]
+        # The job ends at the next line indented exactly two spaces. Splitting
+        # on "\n  " alone stopped after the job's first key, so a job-level
+        # continue-on-error anywhere below it went unseen.
+        block = re.split(r"\n  (?=\S)", macos.split("\n  app-host-unit-tests:\n", 1)[1], maxsplit=1)[0]
+        self.assertIn("\n    steps:", "\n" + block)
         self.assertNotIn("\n    continue-on-error", "\n" + block)
 
     def test_a_run_fixing_the_failing_job_is_kept(self):
@@ -628,7 +633,7 @@ class WorkflowShapeTests(unittest.TestCase):
         self.assertIn("dry_run:", text)
         self.assertNotIn("pull_request", text.split("jobs:")[0].replace("pull-requests: read", ""))
         self.assertIn("permissions:\n  actions: write\n  pull-requests: read\n  contents: read\n", text)
-        self.assertIn("runs-on: ${{ vars.LINUX_RUNNER || 'blacksmith-4vcpu-ubuntu-2404' }}", text)
+        self.assertIn("runs-on: ${{ github.repository_owner != 'manaflow-ai' && 'ubuntu-24.04' || vars.LINUX_RUNNER || 'blacksmith-4vcpu-ubuntu-2404' }}", text)
         self.assertIn("concurrency:\n  group: ci-queue-janitor\n  cancel-in-progress: false\n", text)
         self.assertIn("vars.CI_JANITOR_QUEUE_THRESHOLD", text)
         self.assertIn("ORPHAN_MINUTES: ${{ vars.CI_JANITOR_ORPHAN_MINUTES }}", text)

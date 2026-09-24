@@ -44,6 +44,7 @@ GLOBAL_INPUTS = (
     "scripts/ghosttykit-checksums.txt",
     "scripts/validate-xcframework-archive.py",
     "scripts/select-ci-xcode.sh",
+    "scripts/ci/xcode-pins.txt",
     ".xcode-version",
     "ghostty",
 )
@@ -56,6 +57,8 @@ UNRELATED_PREFIXES = (
     "TunnelExtension/",
     "Resources/",
     "cmuxTests/",
+    "cmuxCLITests/",
+    "cmuxCLITestSupport/",
     "cmuxUITests/",
     "cmux.xcodeproj/",
     "cmux.xcworkspace/",

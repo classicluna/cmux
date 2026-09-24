@@ -1752,7 +1752,7 @@
       "description": "Right-sidebar chrome settings.",
       "descriptionKey": "schemaDescriptions.rightSidebar.description",
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "showTitlebarToggle": {
           "type": "boolean",
@@ -1783,13 +1783,6 @@
           "descriptionKey": "schemaDescriptions.diffViewer.defaultLayout"
         }
       }
-    },
-    "rightSidebar": {
-      "title": "rightSidebar",
-      "description": "Legacy and extension-owned right-sidebar configuration preserved in cmux.json.",
-      "descriptionKey": "schemaDescriptions.rightSidebar",
-      "type": "object",
-      "additionalProperties": true
     },
     "shortcuts": {
       "x-cmux-scopes": ["global"],

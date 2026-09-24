@@ -65,7 +65,7 @@ extension MobileShellComposite {
             return
         }
         let macDeviceID = connectedMacDeviceID ?? activeTicket?.macDeviceID
-        noteMacVersionUpdateRequired(for: macDeviceID ?? "")
+        noteMacVersionUpdateRequired(for: macDeviceID ?? "", instanceTag: activeMacInstanceTag)
         disconnectLiveConnection(preservingOtherMacWorkspaceState: true)
         applyPairingFailure(
             .macAppVersionTooOld(
@@ -92,7 +92,7 @@ extension MobileShellComposite {
             return MobileMacCompatPolicy.Channel(instanceTag: instanceTag)
         case .development?:
             #if DEBUG
-            guard mobileMacCompatDebugOverrideForcesEvaluation() else { return nil }
+            guard MobileMacBuildCompatibilityPolicy.forcesDebugEvaluation() else { return nil }
             return macAppVersion?.contains("-nightly.") == true ? .nightly : .stable
             #else
             return nil

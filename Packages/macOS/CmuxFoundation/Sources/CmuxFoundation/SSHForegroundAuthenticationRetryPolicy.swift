@@ -2524,9 +2524,9 @@ public struct SSHForegroundAuthenticationRetryPolicy: Sendable {
             *)
               cmux_ssh_auth_marker_path="${TMPDIR:-/tmp}/cmux-ssh-auth-marker.$CMUX_SSH_AUTH_EVENT_TOKEN"
               if [ -f "$cmux_ssh_auth_marker_path" ]; then
-                # zsh's managed descriptors are close-on-exec. Use a fixed
-                # descriptor so the marker survives the nested env/zsh exec.
-                if exec 7<> "$cmux_ssh_auth_marker_path" 2>/dev/null; then
+                # Fixed fd 7 survives the nested env/zsh exec.
+                # Scope open errors so exec does not permanently silence stderr.
+                if { exec 7<> "$cmux_ssh_auth_marker_path"; } 2>/dev/null; then
                   # Unlink the marker after the inherited descriptor is open.
                   # The helper uses the saved device and inode, not this path.
                   /bin/rm -f -- "$cmux_ssh_auth_marker_path" 2>/dev/null || true
@@ -2570,7 +2570,7 @@ public struct SSHForegroundAuthenticationRetryPolicy: Sendable {
           # stat accepts -f; the first successful probe supplies numeric device
           # and inode values without assuming a platform-specific path.
           if ( set -C; : > "$cmux_ssh_auth_marker_path" ) 2>/dev/null; then
-            if exec 7<> "$cmux_ssh_auth_marker_path" 2>/dev/null; then
+            if { exec 7<> "$cmux_ssh_auth_marker_path"; } 2>/dev/null; then
               cmux_ssh_auth_marker_device=
               cmux_ssh_auth_marker_inode=
               if [ -n "$cmux_ssh_auth_marker_stat_command" ]; then
@@ -2624,12 +2624,12 @@ public struct SSHForegroundAuthenticationRetryPolicy: Sendable {
             "cmux_ssh_auth_completion_event_fd=",
             "cmux_ssh_auth_completion_ack_fd=",
             "cmux_ssh_auth_completion_fds_open=0",
-            "cmux_ssh_auth_prepare_signal_completion() { cmux_ssh_auth_completion_fds_open=0; if [ -n \"$cmux_ssh_auth_event_token\" ] && [ -p \"$cmux_ssh_auth_term_event_fifo\" ] && [ -p \"$cmux_ssh_auth_term_event_ack_fifo\" ] && exec {cmux_ssh_auth_completion_event_fd}<> \"$cmux_ssh_auth_term_event_fifo\" 2>/dev/null && exec {cmux_ssh_auth_completion_ack_fd}<> \"$cmux_ssh_auth_term_event_ack_fifo\" 2>/dev/null; then cmux_ssh_auth_completion_fds_open=1; else exec {cmux_ssh_auth_completion_event_fd}>&- 2>/dev/null || true; exec {cmux_ssh_auth_completion_ack_fd}>&- 2>/dev/null || true; cmux_ssh_auth_completion_event_fd=; cmux_ssh_auth_completion_ack_fd=; fi; }",
+            "cmux_ssh_auth_prepare_signal_completion() { cmux_ssh_auth_completion_fds_open=0; if [ -n \"$cmux_ssh_auth_event_token\" ] && [ -p \"$cmux_ssh_auth_term_event_fifo\" ] && [ -p \"$cmux_ssh_auth_term_event_ack_fifo\" ] && exec {cmux_ssh_auth_completion_event_fd}<> \"$cmux_ssh_auth_term_event_fifo\" 2>/dev/null && exec {cmux_ssh_auth_completion_ack_fd}<> \"$cmux_ssh_auth_term_event_ack_fifo\" 2>/dev/null; then cmux_ssh_auth_completion_fds_open=1; else case \"${cmux_ssh_auth_completion_event_fd:-}\" in ''|*[!0-9]*) ;; *) exec {cmux_ssh_auth_completion_event_fd}>&- 2>/dev/null || true ;; esac; case \"${cmux_ssh_auth_completion_ack_fd:-}\" in ''|*[!0-9]*) ;; *) exec {cmux_ssh_auth_completion_ack_fd}>&- 2>/dev/null || true ;; esac; cmux_ssh_auth_completion_event_fd=; cmux_ssh_auth_completion_ack_fd=; fi; }",
             // The cleanup helper creates the event FIFOs when cancellation
             // begins, after this wrapper has started. Retry the open at signal
             // completion so the normal startup race cannot disable the
             // completion handshake.
-            "cmux_ssh_auth_signal_completion() { if [ \"$cmux_ssh_auth_completion_fds_open\" != 1 ]; then cmux_ssh_auth_prepare_signal_completion; fi; if [ \"$cmux_ssh_auth_completion_fds_open\" = 1 ]; then cmux_ssh_auth_marker_cleanup_deferred=1; printf '%s\\n' \"$cmux_ssh_auth_event_token\" >&$cmux_ssh_auth_completion_event_fd 2>/dev/null || true; cmux_ssh_auth_completion_ack=; IFS= read -r -t 2 cmux_ssh_auth_completion_ack <&$cmux_ssh_auth_completion_ack_fd || true; fi; if [ -n \"${cmux_ssh_auth_completion_event_fd:-}\" ]; then exec {cmux_ssh_auth_completion_event_fd}>&- 2>/dev/null || true; fi; if [ -n \"${cmux_ssh_auth_completion_ack_fd:-}\" ]; then exec {cmux_ssh_auth_completion_ack_fd}>&- 2>/dev/null || true; fi; cmux_ssh_auth_completion_event_fd=; cmux_ssh_auth_completion_ack_fd=; cmux_ssh_auth_completion_fds_open=0; }",
+            "cmux_ssh_auth_signal_completion() { if [ \"$cmux_ssh_auth_completion_fds_open\" != 1 ]; then cmux_ssh_auth_prepare_signal_completion; fi; if [ \"$cmux_ssh_auth_completion_fds_open\" = 1 ]; then cmux_ssh_auth_marker_cleanup_deferred=1; printf '%s\\n' \"$cmux_ssh_auth_event_token\" >&$cmux_ssh_auth_completion_event_fd 2>/dev/null || true; cmux_ssh_auth_completion_ack=; IFS= read -r -t 2 cmux_ssh_auth_completion_ack <&$cmux_ssh_auth_completion_ack_fd || true; fi; case \"${cmux_ssh_auth_completion_event_fd:-}\" in ''|*[!0-9]*) ;; *) exec {cmux_ssh_auth_completion_event_fd}>&- 2>/dev/null || true ;; esac; case \"${cmux_ssh_auth_completion_ack_fd:-}\" in ''|*[!0-9]*) ;; *) exec {cmux_ssh_auth_completion_ack_fd}>&- 2>/dev/null || true ;; esac; cmux_ssh_auth_completion_event_fd=; cmux_ssh_auth_completion_ack_fd=; cmux_ssh_auth_completion_fds_open=0; }",
             "cmux_ssh_auth_capture_cleanup() {",
             "  if [ -n \"${cmux_ssh_auth_classifier_guard_fd:-}\" ]; then",
             "    exec {cmux_ssh_auth_classifier_guard_fd}>&-",

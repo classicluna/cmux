@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 
 /// Mode shown in the right sidebar (the panel toggled by ⌘⌥B).
 enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
@@ -49,7 +49,7 @@ enum RightSidebarMode: String, CaseIterable, Codable, Sendable {
 }
 
 extension RightSidebarMode {
-    static let paneModes: [RightSidebarMode] = [.files, .find, .sessions]
+    static let paneModes: [RightSidebarMode] = [.files, .find, .sessions, .machines]
 
     var canOpenAsPane: Bool {
         Self.paneModes.contains(self)

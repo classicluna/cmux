@@ -360,7 +360,9 @@ struct RightSidebarPanelView: View {
                     String(localized: "rightSidebar.toggle.tooltip", defaultValue: "Toggle right sidebar")
                 )
             )
-            .accessibilityLabel(KeyboardShortcutSettings.Action.toggleRightSidebar.label)
+            .accessibilityLabel(
+                String(localized: "rightSidebar.close.accessibilityLabel", defaultValue: "Close Right Sidebar")
+            )
             .accessibilityIdentifier("RightSidebar.closeButton")
         }
         .frame(

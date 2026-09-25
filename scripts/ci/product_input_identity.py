@@ -142,6 +142,9 @@ NON_PRODUCT_RECIPE_STEPS = frozenset({
     "Diagnose checkout network failure",
     "Record hosted source preparation",
     "Measure hosted queue-to-start",
+    # Picks the root the product is compiled at, which the product contract
+    # keys as build_location; the recipe steps read it from the environment.
+    "Choose this job's canonical build root",
     "Identify reusable compiled products",
     "Reuse exact compatible compiled products",
     "Record compiled-product reuse metrics",
@@ -158,9 +161,14 @@ NON_PRODUCT_RECIPE_STEPS = frozenset({
     # An owned Mac's kept DerivedData and packages decide how much is rebuilt
     # and fetched, like the seed above, never what the product is.
     "Reuse this owned Mac's build state",
+    "Prefer a near seed over this owned Mac's DerivedData",
     "Adopt this owned Mac's DerivedData",
+    "Record this owned Mac's build inputs",
     "Keep this owned Mac's DerivedData",
     "Keep this owned Mac's build state",
+    # What the kept DerivedData starts from, for the warm runner labels.
+    "List the commits this owned Mac starts from warm",
+    "Upload the owned Mac's warm keys",
     "Validate Swift warning budget",
     "Run early CLI binary smoke checks",
     "Start product publication timer",

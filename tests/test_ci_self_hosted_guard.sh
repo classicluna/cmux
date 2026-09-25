@@ -184,6 +184,8 @@ allowed = {
     ("runner", None, "Upload the persistent pool marker", "actions/upload-artifact"),
     # Its dispatch: without it the run is only not watched.
     ("owned-pool-watch", None, "Dispatch the persistent pool rescue", ""),
+    # The routing App's token: without it the pool choice reads the janitor snapshot.
+    ("runner", "route-token", "Mint the owned-pool routing token", "actions/create-github-app-token"),
 }
 for job_id, job in document["jobs"].items():
     if "continue-on-error" in job:

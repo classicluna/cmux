@@ -1335,7 +1335,7 @@
           "doubleClickAction": "Bestemmer, hvad der sker, når du dobbeltklikker (eller trykker Return på et søgeresultat for) en fil i filoversigten. `preview` åbner den indbyggede cmux-filvisning (standard og historisk adfærd). `defaultEditor` åbner med macOS-standardappen for filtypen. `preferredEditor` åbner med kommandoen `app.preferredEditor` og falder tilbage til standardappen, når den ikke er sat. Gælder kun filer; mapper udvides/skjules altid, og ikke-lokale (eksterne) filoversigter åbner altid cmux-forhåndsvisningen."
         },
         "rightSidebar": {
-          "description": "Indstillinger for højre sidepanels knapper.",
+          "description": "Indstillinger for højre sidepanel.",
           "showTitlebarToggle": "Bevar en vedvarende knap til højre sidepanel i vinduets titellinje, også når sidepanelet er skjult.",
           "showOpenAsPaneButton": "Vis knappen Åbn som panel i højre sidepanels tilstandslinje."
         },

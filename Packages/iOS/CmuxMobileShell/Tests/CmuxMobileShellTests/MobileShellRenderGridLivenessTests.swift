@@ -829,8 +829,15 @@ import Testing
 }
 
 /// The watchdog's original purpose (the ~85s silent-death hang) must keep
-/// working: silence past the threshold plus a host that repeatedly stops
-/// answering independent probes must still tear down and re-subscribe.
+/// working: silence past the threshold plus a host that stops answering the
+/// probe and its repair must still tear the dead session down.
+///
+/// Since #14030 the RPC session condemns a transport after two requests that
+/// reached the wire and got total silence back. Here the held probe and the
+/// held `liveness_probe_retry` subscribe are those two, so the teardown now
+/// comes from the transport layer, one step before the watchdog's own
+/// confirmation probe would have asked for it. Either path satisfies the
+/// contract: the dead transport closes and the store moves to a new session.
 @MainActor
 @Test func watchdogStillResubscribesGenuinelyDeadStream() async throws {
     let clock = TestClock()
@@ -844,35 +851,30 @@ import Testing
     let sawSubscribe = try await pollUntil { await router.count(of: "mobile.events.subscribe") >= 1 }
     #expect(sawSubscribe, "listener must establish the push subscription")
     let hostStatusCountBeforeFailure = await router.count(of: "mobile.host.status")
+    let deadTransport = try #require(box.get())
 
-    // The host stops answering two independent read-only subscription probes,
-    // and also stops answering repair attempts, confirming a dead push path
-    // rather than a transient stall.
+    // The host stops answering the read-only probe and the repair subscribes:
+    // a dead push path, not a transient stall.
     await router.setHoldSubscribe(true)
     await router.holdProbeRequest(number: 1)
     await router.holdProbeRequest(number: 2)
     clock.advance(by: 10)
     store.debugRunRenderGridLivenessCheckForTesting()
     #expect(await router.waitForCount(of: "mobile.events.probe", atLeast: 1))
-    let secondProbeStarted = try await pollUntil {
-        store.debugRunRenderGridLivenessCheckForTesting()
-        return await router.count(of: "mobile.events.probe") >= 2
-    }
-    #expect(secondProbeStarted, "the first failure must permit a confirmation probe")
-    #expect(
-        await router.count(of: "mobile.host.status") == hostStatusCountBeforeFailure,
-        "the first ambiguous probe failure must preserve the current listener"
-    )
 
-    // Recovery restarts the listener, which re-resolves capabilities. A new
-    // mobile.host.status request is the teardown-and-restart proof.
-    let restarted = try await pollUntil(attempts: 600) {
-        await router.count(of: "mobile.host.status") > hostStatusCountBeforeFailure
+    let tornDown = try await pollUntil(attempts: 600) {
+        store.debugRunRenderGridLivenessCheckForTesting()
+        return await deadTransport.isClosedForTesting()
     }
-    #expect(
-        restarted,
-        "a stream that is silent past the threshold AND whose host stops answering the subscription probe must still be torn down and re-subscribed"
-    )
+    #expect(tornDown, "a stream silent past the threshold whose host stops answering must be torn down")
+
+    // Recovery restarts the listener (a new mobile.host.status) or dials a
+    // fresh transport; both replace the dead session.
+    let replaced = try await pollUntil(attempts: 600) {
+        let restarted = await router.count(of: "mobile.host.status") > hostStatusCountBeforeFailure
+        return restarted || box.get() !== deadTransport
+    }
+    #expect(replaced, "the torn-down session must be replaced, not left dead")
     await router.releaseAllHeld()
 }
 

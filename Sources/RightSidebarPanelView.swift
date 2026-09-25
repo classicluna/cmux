@@ -289,7 +289,7 @@ struct RightSidebarPanelView: View {
                 }
                 Spacer(minLength: 0)
                 if showOpenAsPaneButton, fileExplorerState.mode.canOpenAsPane, fileExplorerState.mode.isAvailable() {
-                    openAsPaneButton(mode: fileExplorerState.mode)
+                    RightSidebarOpenAsPaneButton(mode: fileExplorerState.mode, onOpenAsPane: onOpenAsPane)
                 }
                 closeButton
             }
@@ -331,33 +331,6 @@ struct RightSidebarPanelView: View {
         Button(String(localized: "rightSidebar.tabs.customize", defaultValue: "Customize Tabs…")) {
             SettingsWindowPresenter.show(navigationTarget: .sidebarAppearance)
         }
-    }
-
-    private func openAsPaneButton(mode: RightSidebarMode) -> some View {
-        Button {
-            onOpenAsPane(mode)
-        } label: {
-            HeaderChromeIconStyle.symbol("rectangle.split.2x1")
-        }
-        .buttonStyle(RightSidebarHeaderIconButtonStyle(iconGeometryKeyPrefix: "rightSidebarHeaderOpenAsPaneIcon"))
-        .frame(
-            width: RightSidebarChromeMetrics.headerControlSize,
-            height: RightSidebarChromeMetrics.headerControlSize
-        )
-        .reportRightSidebarChromeNamedGeometryForBonsplitUITest(
-            keyPrefix: "rightSidebarHeaderOpenAsPane",
-            isVisible: true
-        )
-        .rightSidebarHeaderControlAlignment()
-        .safeHelp(String(localized: "rightSidebar.openAsPane.tooltip", defaultValue: "Open as pane"))
-        .accessibilityLabel(
-            String.localizedStringWithFormat(
-                String(localized: "rightSidebar.openAsPane.accessibilityLabel", defaultValue: "Open %@ as Pane"),
-                mode.label
-            )
-        )
-        .accessibilityIdentifier("RightSidebar.openAsPaneButton")
-        .titlebarInteractiveControl()
     }
 
     private var closeButton: some View {
